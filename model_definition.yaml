@@ -1,0 +1,36 @@
+model:
+    name: movieRecs
+    description: My first testing model for movie recommendations
+connectors:
+    - type: Dataset
+      id: events
+      name: events
+fetch:
+    events: |
+        SELECT
+            user_id,
+            item_id,
+            timestamp as created_at,
+            rating as label
+        FROM events
+
+
+# 1. shaped create-dataset-from-uri --name events --path ./movielens_events.csv --type csv
+
+# 2. shaped list-datasets
+# datasets:
+# - dataset_name: events
+#   dataset_uri: https://api.shaped.ai/v1/datasets/movielens_events
+#   created_at: 2024-07-09T05:36:22 UTC
+#   schema_type: CUSTOM
+#   status: ACTIVE
+
+# 3. shaped create-model --file model_definition.yaml
+
+# 4. shaped list-models
+# models:
+# - model_name: movie_recommendations
+#   model_uri: https://api.shaped.ai/v1/models/movie_recommendations
+#   created_at: 2024-07-09T05:48:43 UTC
+#   status: SCHEDULING
+
