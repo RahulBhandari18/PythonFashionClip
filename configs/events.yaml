@@ -1,0 +1,9 @@
+# shaped create-dataset --file configs/events.yaml
+# shaped delete-dataset --dataset-name events
+
+dataset_name: events
+schema_type: MONGODB
+config:
+    collection: "events"
+    database: "ShapedTesting"
+    mongodb_connection_string: "mongodb+srv://rahul:Dhruvie12345@itemset.zl2kjim.mongodb.net/ShapedTesting?retryWrites=true&w=majority&appName=ItemSet"

@@ -1,13 +1,18 @@
 import requests
-# shaped rank --model-name movieRecs --user-id 295 --limit 5
-# shaped similar --model-name movieRecs --item-id 493 --limit 5
-# shaped similar --model-name movieRecs --user-id 295
+import os
+
+# shaped rank --model-name styl --user-id KLMNO --limit 5
+# shaped similar --model-name styl --item-id 5 --limit 5
+# shaped similar --model-name styl --user-id KLMNO
 
 API_KEY = "AEhf3Sy76i33Hsw48WJgA8ymQwQ6k5ho31Fzvhhw"
-MODEL_URI = "https://api.shaped.ai/v1/models/movieRecs"
+SHAPED_API_KEY = os.getenv('TEST_SHAPED_API_KEY', API_KEY)
+MODEL_URI = "https://api.shaped.ai/v1/models/styl"
 DATASET_URI = "https://api.shaped.ai/v1/datasets/events"
-MODEL_ID = "movieRecs"
-USER_ID = "295"
+MODEL_ID = "styl"
+# USER_ID = "ABCDE"
+# USER_ID = "FGHIJ"
+USER_ID = "KLMNO"
 
 def get_recommendations(user_id):
     url = f"https://api.shaped.ai/rank/{MODEL_ID}"

@@ -1,0 +1,9 @@
+# shaped create-dataset --file configs/users.yaml
+# shaped delete-dataset --dataset-name users
+
+dataset_name: users
+schema_type: MONGODB
+config:
+    collection: "users"
+    database: "ShapedTesting"
+    mongodb_connection_string: "mongodb+srv://rahul:Dhruvie12345@itemset.zl2kjim.mongodb.net/ShapedTesting?retryWrites=true&w=majority&appName=ItemSet"

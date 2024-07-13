@@ -1,36 +1,36 @@
 model:
-    name: movieRecs
-    description: My first testing model for movie recommendations
+    name: styl
+    description: styl model
 connectors:
     - type: Dataset
       id: events
       name: events
+    - type: Dataset
+      id: items
+      name: items
+    - type: Dataset
+      id: users
+      name: users
 fetch:
+    users: |
+        SELECT
+            JSON_EXTRACT(document, '$.userUID') as user_id,
+            JSON_EXTRACT(document, '$.userName') as userName,
+            JSON_EXTRACT(document, '$.userEmail') as userEmail,
+        FROM users
+    items: |
+        SELECT
+            JSON_EXTRACT(document, '$.item_id') as item_id,
+            JSON_EXTRACT(document, '$.product_brand') as product_brand,
+            JSON_EXTRACT(document, '$.short_description') as short_description,
+            JSON_EXTRACT(document, '$.price') as price,
+            JSON_EXTRACT(document, '$.colors') as colors,
+            JSON_EXTRACT(document, '$.long_description') as long_description,
+        FROM items
     events: |
         SELECT
-            user_id,
-            item_id,
-            timestamp as created_at,
-            rating as label
+            JSON_EXTRACT(document, '$.userUID') as user_id,
+            JSON_EXTRACT(document, '$.item_id') as item_id,
+            JSON_EXTRACT(document, '$.timestamp') as created_at,
+            JSON_EXTRACT(document, '$.rating') as label,
         FROM events
-
-
-# 1. shaped create-dataset-from-uri --name events --path ./movielens_events.csv --type csv
-
-# 2. shaped list-datasets
-# datasets:
-# - dataset_name: events
-#   dataset_uri: https://api.shaped.ai/v1/datasets/movielens_events
-#   created_at: 2024-07-09T05:36:22 UTC
-#   schema_type: CUSTOM
-#   status: ACTIVE
-
-# 3. shaped create-model --file model_definition.yaml
-
-# 4. shaped list-models
-# models:
-# - model_name: movie_recommendations
-#   model_uri: https://api.shaped.ai/v1/models/movie_recommendations
-#   created_at: 2024-07-09T05:48:43 UTC
-#   status: SCHEDULING
-
