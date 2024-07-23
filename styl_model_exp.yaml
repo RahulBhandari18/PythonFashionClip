@@ -1,0 +1,95 @@
+model:
+  name: styl_model_exp
+  interaction_expiration_days: 2000
+  inference_config:
+    retriever_k_override: {}
+connectors:
+  - id: events
+    name: events
+    type: Dataset
+  - id: items
+    name: items
+    query: >
+      SELECT
+        JSONExtractString(document,'item_id') AS item_id,
+        JSONExtractString(document,'short_description') AS name,
+        JSONExtractString(document,'product_brand') AS brand,
+        JSONExtractString(document,'item_type') AS type,
+        JSONExtractString(document,'long_description') AS description,
+        JSONExtractString(document,'colors') AS colors,
+        JSONExtractString(document,'price') AS price,
+        JSONExtractString(document,'tags') AS tags,
+        JSONExtractString(document,'active') AS is_active,
+        JSONExtractString(document,'is_sale') AS on_sale,
+        JSONExtractString(document,'sizes') AS sizes,
+        JSONExtractString(document,'available_sizes') AS available_sizes,
+        JSONExtractString(document,'inventory') AS inventory,
+        trim(BOTH '"' FROM JSONExtractArrayRaw(document,'image_urls')[1]) AS image_url
+      FROM items
+    type: Dataset
+  - id: users
+    name: users
+    query: |
+      SELECT
+        JSONExtractString(document,'userUID') AS user_id,
+        JSONExtractString(document,'sex') AS sex,
+        JSONExtractString(document,'userSchool') AS school
+      FROM users
+    type: Dataset
+fetch:
+  events: >
+    WITH parsed_interactions AS (
+        SELECT
+            JSON_EXTRACT_STRING(document, '$.userUID') AS user_id,
+            JSON_KEYS(JSON_EXTRACT(document, '$.interactions')) AS item_ids,
+            document
+        FROM
+            events
+    )
+
+
+    SELECT
+        user_id,
+        CAST(item_id AS INTEGER) AS item_id,
+        TIMESTAMP 'epoch' + (CAST(created_at AS BIGINT) * INTERVAL '1 second') AS created_at,
+        CASE
+            WHEN save = 'false' AND cart = 'false' THEN 0
+            WHEN save = 'true' AND cart = 'false' THEN 1
+            WHEN save = 'true' AND cart = 'true' THEN 3
+        END AS label,
+        CASE
+            WHEN save = 'false' AND cart = 'false' THEN 'impression'
+            WHEN save = 'true' AND cart = 'false' THEN 'save'
+            WHEN save = 'true' AND cart = 'true' THEN 'add to cart'
+        END AS event_value
+    FROM (
+        SELECT
+            user_id,
+            item_id_list.item_ids AS item_id,
+            JSON_EXTRACT_STRING(JSON_EXTRACT(document, '$.interactions'), '$.' || item_id_list.item_ids || '.timestamp') AS created_at,
+            JSON_EXTRACT_STRING(JSON_EXTRACT(document, '$.interactions'), '$.' || item_id_list.item_ids || '.displaySaved') AS save,
+            JSON_EXTRACT_STRING(JSON_EXTRACT(document, '$.interactions'), '$.' || item_id_list.item_ids || '.displayCart') AS cart
+        FROM
+            parsed_interactions,
+            UNNEST(item_ids) AS item_id_list
+    )
+  users: |
+    SELECT
+        user_id,
+        sex,
+        school
+    FROM users
+  items: |-
+    SELECT
+      item_id,
+      name,
+      brand,
+      type,
+      description,
+      colors,
+      price,
+      tags,
+      on_sale,
+      available_sizes,
+      image_url AS image
+    FROM items

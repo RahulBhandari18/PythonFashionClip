@@ -1,6 +1,13 @@
 import requests
 import os
 
+# shaped create-model --file model_definition.yaml
+# shaped update-model --file model_definition.yaml
+# shaped delete-model --model-name styl
+# shaped view-model --model-name styl
+# shaped list-models
+# tags, discount, image_urls[0]
+
 # shaped rank --model-name styl --user-id KLMNO --limit 5
 # shaped similar --model-name styl --item-id 5 --limit 5
 # shaped similar --model-name styl --user-id KLMNO

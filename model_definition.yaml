@@ -1,6 +1,7 @@
 model:
     name: styl
     description: styl model
+    interaction_expiration_days: 14
 connectors:
     - type: Dataset
       id: events
@@ -21,16 +22,35 @@ fetch:
     items: |
         SELECT
             JSON_EXTRACT(document, '$.item_id') as item_id,
-            JSON_EXTRACT(document, '$.product_brand') as product_brand,
-            JSON_EXTRACT(document, '$.short_description') as short_description,
-            JSON_EXTRACT(document, '$.price') as price,
-            JSON_EXTRACT(document, '$.colors') as colors,
-            JSON_EXTRACT(document, '$.long_description') as long_description,
+            JSON_EXTRACT_STRING(document, '$.product_brand') as product_brand,
+            JSON_EXTRACT_STRING(document, '$.is_sale') as is_sale,
+            JSON_EXTRACT_STRING(document, '$.short_description') as short_description,
+            CAST(JSON_EXTRACT(document, '$.price') AS INTEGER) as price,
+            CAST(JSON_EXTRACT(document, '$.old_price') AS INTEGER) as old_price,
+            JSON_EXTRACT_STRING(document, '$.colors') as colors,
+            JSON_EXTRACT_STRING(document, '$.item_type') as item_type,
+            JSON_EXTRACT_STRING(document, '$.long_description') as long_description,
+            JSON_EXTRACT(document, '$.tags') as tags,
+            JSON_EXTRACT(document, '$.available_sizes') as available_sizes,
+            JSON_EXTRACT(document, '$.image_urls') as image_urls,
         FROM items
     events: |
+        WITH parsed_interactions AS (
+            SELECT
+                JSON_EXTRACT(document, '$.userUID') AS user_id,
+                JSON_KEYS(JSON_EXTRACT(document, '$.interactions')) AS item_ids,
+                document
+            FROM
+                events
+        )
+
         SELECT
-            JSON_EXTRACT(document, '$.userUID') as user_id,
-            JSON_EXTRACT(document, '$.item_id') as item_id,
-            JSON_EXTRACT(document, '$.timestamp') as created_at,
-            JSON_EXTRACT(document, '$.rating') as label,
-        FROM events
+            user_id,
+            item_id_list.item_ids AS item_id,
+            JSON_EXTRACT_STRING(JSON_EXTRACT(document, '$.interactions'), '$.' || item_id_list.item_ids || '.timestamp') AS created_at,
+            CAST(JSON_EXTRACT(JSON_EXTRACT(document, '$.interactions'), '$.' || item_id_list.item_ids || '.rating') AS FLOAT) AS label
+        FROM
+            parsed_interactions,
+            UNNEST(item_ids) AS item_id_list
+        WHERE
+            TIMESTAMP_DIFF(CURRENT_TIMESTAMP(), TIMESTAMP(JSON_EXTRACT_STRING(JSON_EXTRACT(document, '$.interactions'), '$.' || item_id_list.item_ids || '.timestamp')), DAY) < 14;

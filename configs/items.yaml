@@ -1,9 +1,10 @@
 # shaped create-dataset --file configs/items.yaml
+# shaped update-dataset --file configs/items.yaml
 # shaped delete-dataset --dataset-name items
 
 dataset_name: items
 schema_type: MONGODB
 config:
-    collection: "items"
-    database: "ShapedTesting"
+    collection: "shaped_items"
+    database: "Products"
     mongodb_connection_string: "mongodb+srv://rahul:Dhruvie12345@itemset.zl2kjim.mongodb.net/ShapedTesting?retryWrites=true&w=majority&appName=ItemSet"
