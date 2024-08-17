@@ -1,25 +1,18 @@
 import requests
 import os
 
-# shaped create-model --file model_definition.yaml
-# shaped update-model --file model_definition.yaml
-# shaped delete-model --model-name styl
-# shaped view-model --model-name styl
+# shaped create-model --file styl_model.yaml
+# shaped update-model --file styl_model.yaml
+# shaped delete-model --model-name styl_test
+# shaped view-model --model-name styl_test
 # shaped list-models
-# tags, discount, image_urls[0]
 
-# shaped rank --model-name styl --user-id KLMNO --limit 5
-# shaped similar --model-name styl --item-id 5 --limit 5
-# shaped similar --model-name styl --user-id KLMNO
+# shaped rank --model-name styl_test --user-id KLMNO --limit 5
+# shaped similar --model-name styl_test --item-id 5 --limit 5
+# shaped similar --model-name styl_test --user-id KLMNO
 
 API_KEY = "AEhf3Sy76i33Hsw48WJgA8ymQwQ6k5ho31Fzvhhw"
-SHAPED_API_KEY = os.getenv('TEST_SHAPED_API_KEY', API_KEY)
-MODEL_URI = "https://api.shaped.ai/v1/models/styl"
-DATASET_URI = "https://api.shaped.ai/v1/datasets/events"
-MODEL_ID = "styl"
-# USER_ID = "ABCDE"
-# USER_ID = "FGHIJ"
-USER_ID = "KLMNO"
+MODEL_ID = "styl_test"
 
 def get_recommendations(user_id):
     url = f"https://api.shaped.ai/rank/{MODEL_ID}"

@@ -5,6 +5,6 @@
 dataset_name: events
 schema_type: MONGODB
 config:
-    collection: "shaped_users"
-    database: "Products"
+    database: "development"
+    collection: "users"
     mongodb_connection_string: "mongodb+srv://rahul:Dhruvie12345@itemset.zl2kjim.mongodb.net/ShapedTesting?retryWrites=true&w=majority&appName=ItemSet"

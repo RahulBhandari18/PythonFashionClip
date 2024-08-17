@@ -1,18 +1,10 @@
 model:
   name: styl_test
   interaction_expiration_days: 14
-  pagination_store_ttl: 9000
+  pagination_store_ttl: 10800
   inference_config:
-    retrieval_k: 300
-    retriever_k_override:
-      {
-        knn: 0,
-        chronological: 0,
-        cold_start: 300,
-        trending: 0,
-        toplist: 0,
-        random: 0,
-      }
+    retriever_k_override: {}
+  use_derived_features: false
 connectors:
   - id: events
     name: events
@@ -34,35 +26,35 @@ connectors:
         JSONExtractString(document,'available_sizes') AS available_sizes,
         JSONExtractString(document,'image_urls') AS image_urls,
         trim(BOTH '"' FROM JSONExtractArrayRaw(document,'image_urls')[1]) AS image_url
-      FROM items
-      WHERE JSONExtractString(document,'deleted') = 'false'
+      FROM items WHERE JSONExtractString(document,'deleted') = 'false'
     type: Dataset
   - id: users
     name: users
     query: |
       SELECT
         JSONExtractString(document,'userUID') AS user_id,
-        JSONExtractString(document,'userName') AS userName,
-        JSONExtractString(document,'userEmail') AS userEmail,
         JSONExtractString(document,'userSchool') AS userSchool
-      FROM users
-      WHERE JSONExtractString(document,'active') = 'true'
+      FROM users WHERE JSONExtractString(document,'active') = 'true'
+    type: Dataset
+  - id: custom_users
+    name: custom_users
     type: Dataset
 fetch:
   events: >
     WITH parsed_interactions AS (
         SELECT
-            JSONExtractString(document, 'userUID') AS user_id,
+            JSON_EXTRACT_STRING(document, '$.userUID') AS user_id,
             JSON_KEYS(JSON_EXTRACT(document, '$.interactions')) AS item_ids,
             document
         FROM
             events
     )
 
+
     SELECT
         user_id,
         item_id,
-        TIMESTAMP 'epoch' + (CAST(created_at AS BIGINT) * INTERVAL '1 second') AS created_at,
+        to_timestamp(created_at::BIGINT) AS created_at,
         CASE
             WHEN save = 'false' AND cart = 'false' THEN 0
             WHEN save = 'true' AND cart = 'false' THEN 1
@@ -87,10 +79,18 @@ fetch:
   users: |
     SELECT
         user_id,
-        userName,
-        userEmail,
         userSchool
     FROM users
+    UNION ALL
+    SELECT
+        user_id,
+        userSchool
+    FROM custom_users
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM users
+        WHERE users.user_id = custom_users.user_id
+    )
   items: |-
     SELECT
       item_id,
